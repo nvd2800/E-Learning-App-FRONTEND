@@ -1,0 +1,38 @@
+{
+  "courses": [
+    {
+      "id": "c1",
+      "title": "Website Design",
+      "teacher": "Ramono Wutschner",
+      "price": "$59",
+      "rating": "4.5 (1233)",
+      "lessons": "9 lessons",
+      "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop",
+      "badge": "Best-seller"
+    },
+    {
+      "id": "c2",
+      "title": "UX Research for Beginners",
+      "teacher": "Olivia Wang",
+      "price": "$29",
+      "rating": "4.5 (1782)",
+      "lessons": "12 lessons",
+      "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop",
+      "badge": "20% OFF"
+    }
+  ],
+  "teachers": [
+    {
+      "id": "t1",
+      "name": "Christian Hayes",
+      "org": "University of Design",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop"
+    },
+    {
+      "id": "t2",
+      "name": "Van Duc Nguyen",
+      "org": "Embedded System",
+      "avatar": "a1.png"
+    }
+  ]
+}

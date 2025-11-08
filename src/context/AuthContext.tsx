@@ -3,7 +3,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "../services/api";
 
-type User = { id: string; name: string; email: string };
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string | null; // ✅ thêm để UI dùng user.avatar
+};
+
 type ContextType = {
   user: User | null;
   token: string | null;
@@ -20,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Giữ nguyên: lấy token rồi gọi /me
   useEffect(() => {
     (async () => {
       const t = await AsyncStorage.getItem("token");
@@ -28,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data } = await api.get("/api/auth/me", {
             headers: { Authorization: `Bearer ${t}` },
           });
-          setUser(data.user);
+          setUser(data.user as User); // data.user có thể kèm avatar
           setToken(t);
         } catch {
           await AsyncStorage.removeItem("token");
@@ -41,19 +48,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { data } = await api.post("/api/auth/login", { email, password });
     await AsyncStorage.setItem("token", data.token);
-    setUser(data.user);
-    setToken(data.token);
+    setUser(data.user as User);      // ✅ nếu API có avatar sẽ gán luôn
+    setToken(data.token as string);
   };
 
   const signUp = async (name: string, email: string, password: string) => {
-    const { data } = await api.post("/api/auth/register", {
-      name,
-      email,
-      password,
-    });
+    const { data } = await api.post("/api/auth/register", { name, email, password });
     await AsyncStorage.setItem("token", data.token);
-    setUser(data.user);
-    setToken(data.token);
+    setUser(data.user as User);      // ✅ tương tự
+    setToken(data.token as string);
   };
 
   const signOut = async () => {
@@ -63,9 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, signIn, signUp, signOut, loading }}
-    >
+    <AuthContext.Provider value={{ user, token, signIn, signUp, signOut, loading }}>
       {children}
     </AuthContext.Provider>
   );

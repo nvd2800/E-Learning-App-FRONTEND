@@ -1,10 +1,12 @@
 // app/(tabs)/index.tsx
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import axios from "axios";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
+import { useMyCourses } from "../../src/context/MyCoursesContext";
+import { getImageSource } from "../../utils/images";
 
 type Course = {
   id: string;
@@ -15,151 +17,85 @@ type Course = {
   lessons: string;
   image: string;
   badge?: string;
+  tag?: string; // recommended | inspires (nếu bạn gắn tag trong db.json)
 };
 type Teacher = { id: string; name: string; org: string; avatar: string };
 
-const MOCK_API =
-  process.env.EXPO_PUBLIC_API_URL_MOCK || "https://690b72fe6ad3beba00f50368.mockapi.io/courses"; // đổi thành URL MockAPI của bạn
+const BASE_URL = "http://192.168.1.128:3000"; // 👈 Đổi thành IP LAN máy bạn (Android emulator: 10.0.2.2, iOS sim: 127.0.0.1)
 
 export default function HomeScreen() {
   const { user } = useAuth();
 
-  const [recommended, setRecommended] = useState<Course[] | null>(null);
-  const [inspires, setInspires] = useState<Course[] | null>(null);
-  const [teachers, setTeachers] = useState<Teacher[] | null>(null);
+  // ====== STATE ======
+  const [recommended, setRecommended] = useState<Course[]>([]);
+  const [inspires, setInspires] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // ====== FETCH DATA TỪ JSON SERVER (không axios) ======
+  useEffect(() => {
+    let stopped = false;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+
+        // Nếu bạn gắn tag cho course trong db.json, ta có thể query theo tag:
+        // /courses?tag=recommended  và  /courses?tag=inspires
+        const [recRes, inspRes, teaRes] = await Promise.all([
+          fetch(`${BASE_URL}/courses?tag=recommended`),
+          fetch(`${BASE_URL}/courses?tag=inspires`),
+          fetch(`${BASE_URL}/teachers`),
+        ]);
+
+        const [recJson, inspJson, teaJson] = await Promise.all([
+          recRes.json(),
+          inspRes.json(),
+          teaRes.json(),
+        ]);
+
+        if (!stopped) {
+          // Nếu backend chưa có tag, bạn có thể thay bằng fetch tất cả /courses, rồi tách theo field nào đó
+          setRecommended(Array.isArray(recJson) ? recJson : []);
+          setInspires(Array.isArray(inspJson) ? inspJson : []);
+          setTeachers(Array.isArray(teaJson) ? teaJson : []);
+        }
+      } catch (e) {
+        if (!stopped) {
+          // Lỗi API -> để mảng rỗng; không dùng dữ liệu tĩnh theo yêu cầu
+          setRecommended([]);
+          setInspires([]);
+          setTeachers([]);
+        }
+      } finally {
+        !stopped && setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      stopped = true;
+    };
+  }, []);
 
   const categories = useMemo(
     () => [
-      { id: "1", name: "Business",   color: "#1eceda", icon: "briefcase-outline" },
-      { id: "2", name: "Design",     color: "#8b5cf6", icon: "color-palette-outline" },
-      { id: "3", name: "Code",       color: "#ef4444", icon: "code-slash-outline" },
-      { id: "4", name: "Writing",    color: "#3b82f6", icon: "create-outline" },
-      { id: "5", name: "Movie",      color: "#7c3aed", icon: "film-outline" },
-      { id: "6", name: "Language",   color: "#f59e0b", icon: "language-outline" },
+      { id: "1", name: "Business", color: "#1eceda", icon: "briefcase-outline" },
+      { id: "2", name: "Design", color: "#8b5cf6", icon: "color-palette-outline" },
+      { id: "3", name: "Code", color: "#ef4444", icon: "code-slash-outline" },
+      { id: "4", name: "Writing", color: "#3b82f6", icon: "create-outline" },
+      { id: "5", name: "Movie", color: "#7c3aed", icon: "film-outline" },
+      { id: "6", name: "Language", color: "#f59e0b", icon: "language-outline" },
     ],
     []
   );
-
-  const loadHome = useCallback(async () => {
-    const ctl = new AbortController();
-    try {
-      setLoading(true);
-
-      // Gọi 3 endpoint mock (tự tạo trên MockAPI):
-      // 1) /courses?tag=recommended
-      // 2) /courses?tag=inspires
-      // 3) /teachers
-      const [r1, r2, r3] = await Promise.all([
-        axios.get(`${MOCK_API}/courses`, { params: { tag: "recommended" }, signal: ctl.signal }),
-        axios.get(`${MOCK_API}/courses`, { params: { tag: "inspires" }, signal: ctl.signal }),
-        axios.get(`${MOCK_API}/teachers`, { signal: ctl.signal }),
-      ]);
-
-      setRecommended(Array.isArray(r1.data) ? r1.data : []);
-      setInspires(Array.isArray(r2.data) ? r2.data : []);
-      setTeachers(Array.isArray(r3.data) ? r3.data : []);
-    } catch (e) {
-      // Fallback dữ liệu tĩnh nếu API lỗi
-      setRecommended([
-        {
-          id: "c1",
-          title: "Website Design",
-          teacher: "Ramono Wutschner",
-          price: "$59",
-          rating: "4.5 (1233)",
-          lessons: "9 lessons",
-          image:
-            "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop",
-          badge: "Best-seller",
-        },
-        {
-          id: "c2",
-          title: "UX Research for Beginners",
-          teacher: "Olivia Wang",
-          price: "$29",
-          rating: "4.5 (1782)",
-          lessons: "12 lessons",
-          image:
-            "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop",
-          badge: "20% OFF",
-        },
-      ]);
-      setInspires([
-        {
-          id: "c3",
-          title: "Digital Portrait",
-          teacher: "Ramono Wutschner",
-          price: "$67",
-          rating: "4.5 (657)",
-          lessons: "12 lessons",
-          image:
-            "https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          id: "c4",
-          title: "Workspace Decor",
-          teacher: "Ruth Diamond",
-          price: "$19",
-          rating: "4.5 (333)",
-          lessons: "17 lessons",
-          image:
-            "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
-        },
-        {
-          id: "c5",
-          title: "Packaging Design",
-          teacher: "Hui Anderson",
-          price: "$89",
-          rating: "4.5 (1233)",
-          lessons: "14 lessons",
-          image:
-            "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop",
-        },
-      ]);
-      setTeachers([
-        {
-          id: "t1",
-          name: "Christian Hayes",
-          org: "University of …",
-          avatar:
-            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop",
-        },
-        {
-          id: "t2",
-          name: "Dennis Sweeney",
-          org: "University of …",
-          avatar:
-            "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop",
-        },
-        {
-          id: "t3",
-          name: "Lily Carter",
-          org: "Design School",
-          avatar:
-            "https://images.unsplash.com/photo-1541534401786-2077eed87a74?q=80&w=400&auto=format&fit=crop",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-    return () => ctl.abort();
-  }, []);
-
-  useEffect(() => {
-    let aborter: (() => void) | undefined;
-    (async () => {
-      aborter = await loadHome();
-    })();
-    return () => { aborter && aborter(); };
-  }, [loadHome]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {loading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator />
-          <Text style={{ marginTop: 8, color: "#64748b" }}>Đang tải...</Text>
+          <Text style={{ marginTop: 8, color: "#64748b" }}>Loading…</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
@@ -243,7 +179,7 @@ export default function HomeScreen() {
           {/* Recommended for you */}
           <SectionHeader title="Recommended for you" link />
           <FlatList
-            data={recommended ?? []}
+            data={recommended}
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -255,7 +191,7 @@ export default function HomeScreen() {
           {/* Course that inspires */}
           <SectionHeader title="Course that inspires" link />
           <FlatList
-            data={inspires ?? []}
+            data={inspires}
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -267,7 +203,7 @@ export default function HomeScreen() {
           {/* Top teachers */}
           <SectionHeader title="Top teachers" link />
           <FlatList
-            data={teachers ?? []}
+            data={teachers}
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -281,7 +217,7 @@ export default function HomeScreen() {
   );
 }
 
-/* ========== Components ========== */
+/* ========== Components (giữ nguyên UI) ========== */
 
 function SectionHeader({ title, link }: { title: string; link?: boolean }) {
   return (
@@ -349,9 +285,121 @@ function CategoryItem({
   );
 }
 
+// function CourseCard({ course }: { course: Course }) {
+//   return (
+//     <TouchableOpacity
+//       onPress={() => router.push(`/course/${course.id}`)} // ✅ điều hướng tuyệt đối
+//       activeOpacity={0.9}
+//       style={{
+//         width: 240,
+//         backgroundColor: "#fff",
+//         borderRadius: 16,
+//         borderWidth: 1,
+//         borderColor: "#eef2f7",
+//         overflow: "hidden",
+//       }}
+//     >
+//       <View style={{ position: "relative" }}>
+//         <Image source={{ uri: course.image }} style={{ width: 240, height: 120 }} />
+//         {course.badge && (
+//           <View
+//             style={{
+//               position: "absolute",
+//               top: 8,
+//               left: 8,
+//               backgroundColor: "#10b981",
+//               paddingHorizontal: 8,
+//               paddingVertical: 4,
+//               borderRadius: 8,
+//             }}
+//           >
+//             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12 }}>
+//               {course.badge}
+//             </Text>
+//           </View>
+//         )}
+//       </View>
+
+//       <View style={{ padding: 12 }}>
+//         <Text numberOfLines={2} style={{ fontWeight: "800", fontSize: 15 }}>
+//           {course.title}
+//         </Text>
+//         <Text style={{ color: "#6b7280", marginTop: 2 }}>{course.teacher}</Text>
+
+//         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+//           <Text style={{ color: "#16a34a", fontWeight: "800" }}>{course.price}</Text>
+//           <Text style={{ color: "#6b7280" }}>•</Text>
+//           <Ionicons name="star" size={14} color="#f59e0b" />
+//           <Text style={{ color: "#6b7280" }}>{course.rating}</Text>
+//           <Text style={{ color: "#6b7280" }}>• {course.lessons}</Text>
+//         </View>
+//       </View>
+//     </TouchableOpacity>
+//   );
+// }
+
+// function CourseCard({ course }: { course: Course }) {
+//   return (
+//     <TouchableOpacity
+//       onPress={() => router.push(`/course/${course.id}`)}
+//       activeOpacity={0.9}
+//       style={{
+//         width: 240,
+//         backgroundColor: "#fff",
+//         borderRadius: 16,
+//         borderWidth: 1,
+//         borderColor: "#eef2f7",
+//         overflow: "hidden",
+//       }}
+//     >
+//       <View style={{ position: "relative" }}>
+//         <Image
+//           source={getImageSource(course.image, "course")}
+//           style={{ width: 240, height: 120 }}
+//         />
+//         {course.badge && (
+//           <View
+//             style={{
+//               position: "absolute",
+//               top: 8,
+//               left: 8,
+//               backgroundColor: "#10b981",
+//               paddingHorizontal: 8,
+//               paddingVertical: 4,
+//               borderRadius: 8,
+//             }}
+//           >
+//             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12 }}>
+//               {course.badge}
+//             </Text>
+//           </View>
+//         )}
+//       </View>
+
+//       <View style={{ padding: 12 }}>
+//         <Text numberOfLines={2} style={{ fontWeight: "800", fontSize: 15 }}>
+//           {course.title}
+//         </Text>
+//         <Text style={{ color: "#6b7280", marginTop: 2 }}>{course.teacher}</Text>
+
+//         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+//           <Text style={{ color: "#16a34a", fontWeight: "800" }}>{course.price}</Text>
+//           <Text style={{ color: "#6b7280" }}>•</Text>
+//           <Ionicons name="star" size={14} color="#f59e0b" />
+//           <Text style={{ color: "#6b7280" }}>{course.rating}</Text>
+//           <Text style={{ color: "#6b7280" }}>• {course.lessons}</Text>
+//         </View>
+//       </View>
+//     </TouchableOpacity>
+//   );
+// }
 function CourseCard({ course }: { course: Course }) {
+  const { addCourse, isOwned } = useMyCourses();
+  const owned = isOwned(course.id);
+
   return (
     <TouchableOpacity
+      onPress={() => router.push(`/course/${course.id}`)}
       activeOpacity={0.9}
       style={{
         width: 240,
@@ -381,18 +429,6 @@ function CourseCard({ course }: { course: Course }) {
             </Text>
           </View>
         )}
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            right: 8,
-            bottom: 8,
-            backgroundColor: "#fff",
-            borderRadius: 20,
-            padding: 6,
-          }}
-        >
-          <MaterialIcons name="bookmark-border" size={18} />
-        </TouchableOpacity>
       </View>
 
       <View style={{ padding: 12 }}>
@@ -408,11 +444,41 @@ function CourseCard({ course }: { course: Course }) {
           <Text style={{ color: "#6b7280" }}>{course.rating}</Text>
           <Text style={{ color: "#6b7280" }}>• {course.lessons}</Text>
         </View>
+
+        {/* Nút mua / đã mua */}
+        <View style={{ marginTop: 10, flexDirection: "row", justifyContent: "flex-end" }}>
+          {owned ? (
+            <View
+              style={{
+                backgroundColor: "#e5f7ef",
+                borderColor: "#16a34a",
+                borderWidth: 1,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "#16a34a", fontWeight: "700" }}>ĐÃ MUA</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => addCourse(course)}
+              activeOpacity={0.8}
+              style={{
+                backgroundColor: "#06b6d4",
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "800" }}>Mua</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
 }
-
 function TeacherCard({ t }: { t: Teacher }) {
   return (
     <TouchableOpacity
@@ -427,7 +493,10 @@ function TeacherCard({ t }: { t: Teacher }) {
         alignItems: "center",
       }}
     >
-      <Image source={{ uri: t.avatar }} style={{ width: 80, height: 80, borderRadius: 40 }} />
+      <Image
+        source={getImageSource(t.avatar, "teacher")}
+        style={{ width: 80, height: 80, borderRadius: 40 }}
+      />
       <Text style={{ fontWeight: "800", marginTop: 10 }}>{t.name}</Text>
       <Text numberOfLines={1} style={{ color: "#6b7280", marginTop: 2 }}>
         {t.org}
@@ -439,3 +508,4 @@ function TeacherCard({ t }: { t: Teacher }) {
     </TouchableOpacity>
   );
 }
+
