@@ -8,7 +8,8 @@
       "rating": "4.5 (1233)",
       "lessons": "9 lessons",
       "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop",
-      "badge": "Best-seller"
+      "badge": "Best-seller",
+      "tag": "recommended" 
     },
     {
       "id": "c2",
@@ -18,9 +19,51 @@
       "rating": "4.5 (1782)",
       "lessons": "12 lessons",
       "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop",
-      "badge": "20% OFF"
+      "badge": "20% OFF",
+      "tag": "inspires"
+    },
+    {
+      "id": "c3",
+      "title": "React Native from Zero to Pro",
+      "teacher": "Christian Hayes",
+      "price": "$79",
+      "rating": "4.7 (2311)",
+      "lessons": "15 lessons",
+      "image": "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=800&auto=format&fit=crop",
+      "badge": "Hot",
+      "tag": "recommended"
+    },
+    {
+      "id": "c4",
+      "title": "Python for Data Analysis",
+      "teacher": "Dennis Sweeney",
+      "price": "$65",
+      "rating": "4.6 (1980)",
+      "lessons": "18 lessons",
+      "image": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=800&auto=format&fit=crop",
+      "tag": "inspires"
+    },
+    {
+      "id": "c5",
+      "title": "Photoshop Basics to Advanced",
+      "teacher": "Lily Carter",
+      "price": "$49",
+      "rating": "4.4 (1120)",
+      "lessons": "10 lessons",
+      "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop",
+      "tag": "recommended"
+    },
+    {
+      "id": "c6",
+      "title": "SQL Mastery: From Select to Optimization",
+      "teacher": "Hayes",
+      "price": "$39",
+      "rating": "4.5 (1567)",
+      "lessons": "14 lessons",
+      "tag": "inspires"
     }
   ],
+
   "teachers": [
     {
       "id": "t1",
@@ -30,9 +73,156 @@
     },
     {
       "id": "t2",
-      "name": "Van Duc Nguyen",
+      "name": "Hayes",
       "org": "Embedded System",
-      "avatar": "a1.png"
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop"
+    },
+    {
+      "id": "t3",
+      "name": "Dennis Sweeney",
+      "org": "University of Data",
+      "avatar": "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop"
+    },
+    {
+      "id": "t4",
+      "name": "Lily Carter",
+      "org": "Design School",
+      "avatar": "https://images.unsplash.com/photo-1541534401786-2077eed87a74?q=80&w=400&auto=format&fit=crop"
+    },
+    {
+      "id": "t5",
+      "name": "Olivia Wang",
+      "org": "UX Research Lab",
+      "avatar": "https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=400&auto=format&fit=crop"
     }
-  ]
+  ],
+
+  "lessons": [
+    {
+      "id": "sec1",
+      "courseId": "c2",
+      "sectionTitle": "I - Introduction",
+      "items": [
+        { "id": "l1", "title": "Amet adipisicing consectetur", "duration": "01:23", "locked": false },
+        { "id": "l2", "title": "Adipisicing dolor amet occaecaa", "duration": "01:23", "locked": false }
+      ]
+    },
+    {
+      "id": "sec2",
+      "courseId": "c2",
+      "sectionTitle": "II - Plan for your UX Research",
+      "items": [
+        { "id": "l3", "title": "Exercitation elit incididunt esse", "duration": "01:23", "locked": true },
+        { "id": "l4", "title": "Duis esse ipsum laborum", "duration": "01:23", "locked": true },
+        { "id": "l5", "title": "Labore minim reprehenderit pariatur ea deserunt", "duration": "01:23", "locked": true }
+      ]
+    },
+    { "id": "sec3", "courseId": "c2", "sectionTitle": "III - Conduct UX research", "items": [] },
+    { "id": "sec4", "courseId": "c2", "sectionTitle": "IV - Articulate findings", "items": [] },
+
+    {
+      "id": "sec5",
+      "courseId": "c1",
+      "sectionTitle": "I - Getting Started with Web Design",
+      "items": [
+        { "id": "w1", "title": "Introduction to HTML and CSS", "duration": "02:10", "locked": false },
+        { "id": "w2", "title": "Setting up your environment", "duration": "01:45", "locked": false }
+      ]
+    },
+    {
+      "id": "sec6",
+      "courseId": "c1",
+      "sectionTitle": "II - Building the Layout",
+      "items": [
+        { "id": "w3", "title": "Flexbox and Grid Essentials", "duration": "02:30", "locked": true },
+        { "id": "w4", "title": "Designing with Figma", "duration": "02:15", "locked": true }
+      ]
+    },
+    {
+      "id": "sec7",
+      "courseId": "c1",
+      "sectionTitle": "III - Publishing your website",
+      "items": [
+        { "id": "w5", "title": "Hosting and Deployment", "duration": "01:50", "locked": true }
+      ]
+    },
+
+    {
+      "id": "sec8",
+      "courseId": "c3",
+      "sectionTitle": "I - React Native Basics",
+      "items": [
+        { "id": "rn1", "title": "Project setup & Expo", "duration": "02:05", "locked": false },
+        { "id": "rn2", "title": "Components & Props", "duration": "02:20", "locked": false }
+      ]
+    },
+    {
+      "id": "sec9",
+      "courseId": "c3",
+      "sectionTitle": "II - Navigation & State",
+      "items": [
+        { "id": "rn3", "title": "React Navigation", "duration": "02:40", "locked": true },
+        { "id": "rn4", "title": "Context & AsyncStorage", "duration": "02:15", "locked": true }
+      ]
+    },
+
+    {
+      "id": "sec10",
+      "courseId": "c4",
+      "sectionTitle": "I - Numpy & Pandas",
+      "items": [
+        { "id": "py1", "title": "Numpy essentials", "duration": "02:10", "locked": false },
+        { "id": "py2", "title": "Pandas DataFrame", "duration": "02:35", "locked": false }
+      ]
+    },
+    {
+      "id": "sec11",
+      "courseId": "c4",
+      "sectionTitle": "II - Data Visualization",
+      "items": [
+        { "id": "py3", "title": "Matplotlib & Seaborn", "duration": "02:25", "locked": true }
+      ]
+    },
+
+    {
+      "id": "sec12",
+      "courseId": "c5",
+      "sectionTitle": "I - Photoshop Fundamentals",
+      "items": [
+        { "id": "ps1", "title": "Workspace & Tools", "duration": "01:40", "locked": false },
+        { "id": "ps2", "title": "Layers & Masks", "duration": "02:00", "locked": false }
+      ]
+    },
+    {
+      "id": "sec13",
+      "courseId": "c5",
+      "sectionTitle": "II - Retouch & Effects",
+      "items": [
+        { "id": "ps3", "title": "Color Correction", "duration": "02:05", "locked": true }
+      ]
+    },
+
+    {
+      "id": "sec14",
+      "courseId": "c6",
+      "sectionTitle": "I - SQL Fundamentals",
+      "items": [
+        { "id": "sql1", "title": "SELECT & WHERE", "duration": "01:50", "locked": false },
+        { "id": "sql2", "title": "JOIN & GROUP BY", "duration": "02:20", "locked": false }
+      ]
+    },
+    {
+      "id": "sec15",
+      "courseId": "c6",
+      "sectionTitle": "II - Index & Performance",
+      "items": [
+        { "id": "sql3", "title": "Indexes & EXPLAIN", "duration": "02:15", "locked": true }
+      ]
+    }
+  ],
+"reviews": [
+  { "id": "r1", "teacherId": "t1", "user": "Minh Tran", "rating": 5, "comment": "Cực kỳ rõ ràng và dễ hiểu.", "date": "2025-03-01" },
+  { "id": "r2", "teacherId": "t1", "user": "Lan Pham", "rating": 4, "comment": "Ví dụ thực tế, cuốn hút.", "date": "2025-03-08" }
+]
+
 }

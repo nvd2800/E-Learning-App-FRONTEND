@@ -7,66 +7,94 @@ type User = {
   id: string;
   name: string;
   email: string;
-  avatar?: string | null; // ✅ thêm để UI dùng user.avatar
+  avatar?: string | null;
 };
 
 type ContextType = {
   user: User | null;
   token: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signUp: (name: string, email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   loading: boolean;
 };
 
 const AuthContext = createContext<ContextType | null>(null);
+const TOKEN_KEY = "token";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Giữ nguyên: lấy token rồi gọi /me
+  // lấy token -> gọi /api/auth/me
   useEffect(() => {
     (async () => {
-      const t = await AsyncStorage.getItem("token");
-      if (t) {
-        try {
-          const { data } = await api.get("/api/auth/me", {
-            headers: { Authorization: `Bearer ${t}` },
-          });
-          setUser(data.user as User); // data.user có thể kèm avatar
+      try {
+        const t = await AsyncStorage.getItem(TOKEN_KEY);
+        if (t) {
+          api.defaults.headers.common["Authorization"] = `Bearer ${t}`;
+          const { data } = await api.get("/api/auth/me");
+          setUser(data.user as User);
           setToken(t);
-        } catch {
-          await AsyncStorage.removeItem("token");
         }
+      } catch {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        setUser(null);
+        setToken(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { data } = await api.post("/api/auth/login", { email, password });
-    await AsyncStorage.setItem("token", data.token);
-    setUser(data.user as User);      // ✅ nếu API có avatar sẽ gán luôn
-    setToken(data.token as string);
+  // login
+  const signIn = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data } = await api.post("/api/auth/login", { email, password });
+
+      const t = data.token as string;
+      const u = data.user as User;
+
+      await AsyncStorage.setItem(TOKEN_KEY, t);
+      api.defaults.headers.common["Authorization"] = `Bearer ${t}`;
+
+      setUser(u);
+      setToken(t);
+
+      return true;
+    } catch (e) {
+      console.log("signIn error:", (e as any)?.response?.data || e);
+      return false;
+    }
   };
 
-  const signUp = async (name: string, email: string, password: string) => {
-    const { data } = await api.post("/api/auth/register", { name, email, password });
-    await AsyncStorage.setItem("token", data.token);
-    setUser(data.user as User);      // ✅ tương tự
-    setToken(data.token as string);
+  // register (nếu dùng qua context)
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      await api.post("/api/auth/register", { name, email, password });
+      return true; // đăng ký xong chuyển qua màn login
+    } catch (e) {
+      console.log("signUp error:", (e as any)?.response?.data || e);
+      return false;
+    }
   };
 
   const signOut = async () => {
-    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem(TOKEN_KEY);
+    delete api.defaults.headers.common["Authorization"];
     setUser(null);
     setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, signIn, signUp, signOut, loading }}>
+    <AuthContext.Provider
+      value={{ user, token, signIn, signUp, signOut, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
