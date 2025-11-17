@@ -4,7 +4,8 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ####3
 Nguyễn Văn Đức 
-Nguyễn Thành 
+
+Nguyễn Thành Đô
 ## Get started
 
 1. Install dependencies
